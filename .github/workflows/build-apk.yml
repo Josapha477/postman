@@ -16,40 +16,19 @@ jobs:
       - name: Installer dépendances système
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip openjdk-17-jdk unzip zip git wget
+          sudo apt install -y python3 python3-pip zip unzip openjdk-17-jdk
 
-      - name: Installer Buildozer et outils Python
+      - name: Installer Buildozer et Cython
         run: |
           pip install --upgrade pip
-          pip install buildozer cython virtualenv
+          pip install buildozer cython
 
-      - name: Installer SDK Android et accepter les licences
+      - name: Accepter licences Android SDK
         run: |
-          # Créer un dossier pour le SDK
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          
-          # Télécharger les command-line tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip
-          rm cmdline-tools.zip
-          
-          # Définir variables d'environnement
-          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
+          mkdir -p ~/.android
+          echo '### Licenses accepted automatically' > ~/.android/repositories.cfg
+          yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-          # Accepter toutes les licences automatiquement
-          yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
-
-          # Installer la version exacte des Build-Tools nécessaires
-          $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
-
-      - name: Compiler l’APK
+      - name: Compiler APK
         run: |
           buildozer android debug
-
-      - name: Sauvegarder l’APK compilé
-        uses: actions/upload-artifact@v4
-        with:
-          name: kivy-apk
-          path: bin/*.apk
